@@ -16,23 +16,41 @@
         height: 100%;
         width: 100%;
         overflow: hidden;
-        filter: blur(16px);
+        filter: blur(10px);
     }
 
     .ai-box::before {
         content: "";
         position: absolute;
-        inset: -25px;
+        inset: -10px;
 
         /* độ dày viền */
-        padding: 40px;
+        padding: 20px;
 
         /* bo góc quyết định hình */
-        border-radius: 46px;
+        border-radius: calc(var(--bg-borderRadiusPhone) + 10px);
 
-        background: conic-gradient(from var(--angle), #ff5f6d, #ffc371, #47ffd2, #5f9cff, #c77dff, #ff5f6d);
+        background: conic-gradient(
+                from var(--angle),
+                rgba(52, 168, 82, 0),
+                rgba(52, 168, 82, 1),
+                rgba(255, 211, 20, 1),
+                rgba(255, 70, 65, 1),
+                rgba(49, 134, 255, 1),
+                rgba(49, 134, 255, 0.5),
+                rgba(49, 134, 255, 0),
+                rgba(52, 168, 82, 0)
+            )
+            border-box;
 
         /* ===== SUBTLE EDGE DISTORT ===== */
+        mask:
+    /* khoét giữa */ linear-gradient(#000 0 0) content-box,
+            /* cạnh trái */ radial-gradient(180% 120% at 0% 50%, #000 66%, transparent 69%),
+            /* cạnh phải */ radial-gradient(180% 120% at 100% 50%, #000 66%, transparent 69%),
+            /* cạnh trên */ radial-gradient(120% 180% at 50% 0%, #000 66%, transparent 69%),
+            /* cạnh dưới */ radial-gradient(120% 180% at 50% 100%, #000 66%, transparent 69%);
+
         -webkit-mask:
     /* khoét giữa */ linear-gradient(#000 0 0) content-box,
             /* cạnh trái */ radial-gradient(180% 120% at 0% 50%, #000 66%, transparent 69%),
@@ -40,9 +58,10 @@
             /* cạnh trên */ radial-gradient(120% 180% at 50% 0%, #000 66%, transparent 69%),
             /* cạnh dưới */ radial-gradient(120% 180% at 50% 100%, #000 66%, transparent 69%);
 
+        mask-composite: intersect, intersect, intersect, intersect, intersect;
         -webkit-mask-composite: xor, destination-in, destination-in, destination-in, destination-in;
 
-        animation: spin 4s linear infinite, edgeDrift 14s ease-in-out infinite;
+        animation: spin 7.5s linear infinite, edgeDrift 14s ease-in-out infinite;
     }
 
     z-index: 100000;

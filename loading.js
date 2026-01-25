@@ -1,3 +1,5 @@
+const root = document.documentElement;
+const rootStyle = getComputedStyle(root);
 window.addEventListener("DOMContentLoaded", async () => {
     {
         const now = new Date();
@@ -6,7 +8,7 @@ window.addEventListener("DOMContentLoaded", async () => {
 
         //if (month === 0 && day >= 1 && day <= 3) {
         //    addNotification(
-        //        "https://quandz24-ui.github.io/OriginWEB/originData/iconPacks/origin_icon/calendar.png",
+        //        "/OriginWEB/originData/iconPacks/origin_icon/calendar.png",
         //        "calendar",
         //        "Happy New Year " + now.getFullYear() + "! 🎉🎉🎉",
         //        "app_none4"
@@ -15,9 +17,28 @@ window.addEventListener("DOMContentLoaded", async () => {
     }
     // === hình nền đã lưu ===
     const wallpaperLock = localStorage.getItem("wallpaperLock");
+
     if (wallpaperLock) {
         document.documentElement.style.setProperty("--bg-wallpaperLock", wallpaperLock);
     }
+    {
+        // load color button medium wallpaper
+        const urlImg = getComputedStyle(document.documentElement)
+        .getPropertyValue("--bg-wallpaperLock")
+        .trim()
+        .replace(/url\(["']?(.*?)["']?\)/, "$1");
+
+        colorMediumImg(urlImg).then((color) => {
+            const finalColor = darkerOrBrighterColor(color, 0.5);
+            document.getElementById("colorMediumWallpaperButton").style.backgroundColor = color;
+
+            originColorWallpaperLock = color;
+            darkerColorWallpaperLock = finalColor;
+
+            wallpaperLockColorPre.style.cssText = `background: linear-gradient( ${darkerColorWallpaperLock}, ${originColorWallpaperLock});`;
+        });
+    }
+
     const wallpaperHome = localStorage.getItem("wallpaperHome");
     if (wallpaperHome) {
         document.documentElement.style.setProperty("--bg-wallpaperHome", wallpaperHome);
@@ -29,19 +50,6 @@ window.addEventListener("DOMContentLoaded", async () => {
     document.getElementById("phoneName").textContent = localStorage.getItem("phoneName") || "Click to rename";
 
     // === lấy các thông tin trong phần giới thiệu (ứng dụng cài đặt) ===
-    let totalUsed = 0;
-    for (let key in localStorage) {
-        if (localStorage.hasOwnProperty(key)) {
-            let value = localStorage.getItem(key);
-            totalUsed += key.length + (value ? value.length : 0);
-        }
-    }
-    let totalBytes = 5 * 1024 * 1024;
-    let usedBytes = totalUsed;
-    if (!isNaN(totalBytes) && !isNaN(usedBytes)) {
-        document.getElementById("storage").textContent = formatSize(totalBytes);
-        document.getElementById("storageUsed").textContent = formatSize(usedBytes);
-    }
 
     if ("hardwareConcurrency" in navigator) {
         const cores = navigator.hardwareConcurrency;
@@ -75,14 +83,14 @@ window.addEventListener("DOMContentLoaded", async () => {
     if (localStorage.getItem("version") !== "2000") {
         if (localStorage.getItem("version") == null) {
             addNotification(
-                "https://quandz24-ui.github.io/OriginWEB/originData/iconPacks/origin_icon/system_settings.png",
+                "/OriginWEB/originData/iconPacks/origin_icon/system_settings.png",
                 "OriginWEB",
                 "Welcome to OriginWEB V2.0.00 for the first time",
                 "app_settings"
             );
         } else
             addNotification(
-                "https://quandz24-ui.github.io/OriginWEB/originData/iconPacks/origin_icon/system_settings.png",
+                "/OriginWEB/originData/iconPacks/origin_icon/system_settings.png",
                 "OriginWEB",
                 "Welcome to OriginWEB V2.0.00",
                 "app_settings"
@@ -91,26 +99,15 @@ window.addEventListener("DOMContentLoaded", async () => {
     }
 
     // load clock app
-    loadHTMLInto("#app_clock .appDisplay", "https://quandz24-ui.github.io/OriginWEB/appData/app_clock/html/html.html");
-    loadHTMLInto("#app_calculator .appDisplay", "https://quandz24-ui.github.io/OriginWEB/appData/app_calculator/html/html.html");
+    loadHTMLInto("#app_clock .appDisplay", "/OriginWEB/appData/app_clock/html/html.html");
+    loadHTMLInto("#app_calculator .appDisplay", "/OriginWEB/appData/app_calculator/html/html.html");
     // === các function cần khi mở web ===
     loadAppLayout();
     cleanupEmptyScreens();
     buildDots();
-    updateAppPositions(() => {
-        setTimeout(() => {
-            const loadingScreen = document.querySelector(".loadingScreen");
 
-            loadingScreen.animate([{opacity: 1}, {opacity: 0}], {
-                duration: 800,
-                easing: "ease",
-                fill: "forwards",
-            }).onfinish = () => {
-                loadingScreen.remove();
-            };
-        }, 1500);
-    });
-    // openEditorHomeScreen();
+    //openEditorHomeScreen();
+    // createPasswordScreen();
 
     //showLockScreen();
     if (doubleTapOnOff) {
@@ -123,7 +120,7 @@ window.addEventListener("DOMContentLoaded", async () => {
     //openApp(document.querySelector('[data-app="app_settings"]'));
 
     setTimeout(() => {
-        unlockAnimWA();
+        //unlockAnimWA();
     }, 500);
 
     // load from localstorage
@@ -132,15 +129,11 @@ window.addEventListener("DOMContentLoaded", async () => {
         if (localStorage.getItem("darkMode") == "1") {
             const element = document.getElementById("toggleDarkMode");
             element.classList.add("active");
-            document.documentElement.style.setProperty("--bg-itemBackground", "#171717");
-            document.documentElement.style.setProperty("--bg-appbackground", "#000");
-            document.documentElement.style.setProperty("--bg-color", "white");
+            phone.classList.add("darkMode");
         } else {
             const element = document.getElementById("toggleDarkMode");
             element.classList.remove("active");
-            document.documentElement.style.setProperty("--bg-itemBackground", "#fff");
-            document.documentElement.style.setProperty("--bg-appbackground", "#eaeaea");
-            document.documentElement.style.setProperty("--bg-color", "#000");
+            phone.classList.remove("darkMode");
         }
     }
     {
@@ -202,24 +195,6 @@ window.addEventListener("DOMContentLoaded", async () => {
         if (fontClockWeightValue) {
             fontClockWeightValue.textContent = fontWeightLockClock;
         }
-    }
-    {
-        // load color button medium wallpaper
-        const urlImg = getComputedStyle(document.documentElement)
-        .getPropertyValue("--bg-wallpaperLock")
-        .trim()
-        .replace(/url\(["']?(.*?)["']?\)/, "$1");
-
-        colorMediumImg(urlImg).then((color) => {
-            const finalColor = darkerOrBrighterColor(color, 0.5);
-            document.getElementById("colorMediumWallpaperButton").style.backgroundColor = color;
-
-            originColorWallpaperLock = color;
-            darkerColorWallpaperLock = finalColor;
-
-            wallpaperLockColorPre.style.cssText = `background: linear-gradient( ${darkerColorWallpaperLock}, ${originColorWallpaperLock});`;
-            wallpaperOnStyle();
-        });
     }
 
     {
@@ -285,6 +260,19 @@ window.addEventListener("DOMContentLoaded", async () => {
         if (localStorage.getItem("turnBlurOff") == "1") {
             document.getElementById("blurAllApp").classList.add("displayN");
             document.getElementById("toggle_turnBlurOff").classList.remove("active");
+            document.getElementById("toggle_turnBlurOff2").classList.remove("active");
+        }
+    }
+    {
+        // Advanced Blur
+        const saved = localStorage.getItem("turnAdvancedBlurOn");
+        if (saved == "1") {
+            const el = document.getElementById("toggle_turnAdvancedBlurOn");
+            el.classList.add("active");
+            root.style.setProperty("--bg-advancedBlur", "6px");
+            const unlockAnimation = localStorage.getItem("unlockAnimation");
+            if (unlockAnimation == "HyperOS")
+                filterForUnlockAnim = `blur(${rootStyle.getPropertyValue("--bg-advancedBlur").toString()})`;
         }
     }
     {
@@ -336,6 +324,7 @@ window.addEventListener("DOMContentLoaded", async () => {
             selectBoxs.querySelector(".itemChild.active").classList.remove("active");
             selectBoxs.querySelectorAll(".itemChild").forEach((item) => {
                 if (item.dataset.value === unlockAnimation) {
+                    selectUnlockAnimation.querySelector(".currentValue").textContent = item.textContent;
                     item.classList.add("active");
                     return;
                 }
@@ -348,7 +337,9 @@ window.addEventListener("DOMContentLoaded", async () => {
             const el = document.getElementById("toggle_turnLiquidOff");
             el.classList.remove("active");
             phone.classList.add("noLiquid");
-            document.querySelector(".settingsItem[notWorkBy='toggle_turnLiquidOff']").classList.add("notWork");
+            document.querySelectorAll(".settingsItem[notWorkBy='toggle_turnLiquidOff']").forEach((el) => {
+                el.classList.add("notWork");
+            });
         }
     }
     {
@@ -361,13 +352,59 @@ window.addEventListener("DOMContentLoaded", async () => {
             document.getElementById("ani_fingerprint").classList.remove("displayN");
         }
     }
+    {
+        const el = document.getElementById("toggle_turnDockBarOff2");
+        if (localStorage.getItem("turnDockBarOff") == "1") {
+            el.classList.remove("active");
+            document.getElementById("favApp").classList.add("hiddenBackground");
+        }
+    }
+    {
+        const el = document.getElementById("toggle_turnLiquidDockBarOff2");
+        if (localStorage.getItem("turnLiquidDockBarOff") == "1") {
+            el.classList.remove("active");
+            document.getElementById("pager").classList.remove("liquid");
+            document.getElementById("favApp").classList.remove("liquid");
+        }
+    }
+    {
+        lockContent.dataset.posclock = localStorage.getItem("posClock") || "center";
+        document.querySelector("#app_SettingsAppLockEditor .lockContent.preview").dataset.posclock =
+            localStorage.getItem("posClock") || "center";
+    }
+    {
+        root.style.setProperty("--bg-scaleIcon", localStorage.getItem("scaleIcon") || "0.9");
+        document.getElementById("inputRangeIconSize").value = localStorage.getItem("scaleIcon") || "0.9";
+    }
+    {
+        const saved = localStorage.getItem("borderRadiusIcon") || "17";
+        root.style.setProperty("--bg-borderRadiusIcon", saved + "px");
+        document.getElementById("inputRangeIconBRadius").value = saved;
+    }
+    {
+        const saved = localStorage.getItem("scaleIconName") || "0.85";
+        root.style.setProperty("--bg-scaleIconName", saved);
+        document.getElementById("scaleIconName").value = saved;
+    }
 
     document.getElementById("passwordIn4").textContent =
         "password: " + (correctPassword !== "" ? correctPassword : "not set");
+    updateAppPositions(() => {
+        setTimeout(() => {
+            const loadingScreen = document.querySelector(".loadingScreen");
+
+            loadingScreen.animate([{opacity: 1}, {opacity: 0}], {
+                duration: 800,
+                easing: "ease",
+                fill: "forwards",
+            }).onfinish = () => {
+                loadingScreen.remove();
+            };
+        }, 1500);
+    });
 });
 
 function formatSize(bytes) {
     if (bytes < 1024 * 1024) return (bytes / 1024).toFixed(2) + " KB";
     return (bytes / 1024 / 1024).toFixed(2) + " MB";
 }
-

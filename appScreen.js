@@ -10,6 +10,8 @@ let startXMovingIcon = 0,
 let scriptTriggered = false;
 
 const nav = document.getElementById("nav");
+//const navOvlay = document.getElementById("navOvlay");
+
 const favApp = document.getElementById("favApp");
 let currentAppScreen = document.getElementById("appScreen1");
 
@@ -79,7 +81,10 @@ document.querySelectorAll(".iconApp").forEach((icon) => {
 
 function pointerUpIcon(e) {
     if (holdTimer) {
-        if (currentOpeningElApp) closeApp();
+        if (currentOpeningElApp) {
+            currentOpeningElApp.classList.add("multiClick");
+            closeApp();
+        }
         clearTimeoutHoldTimer();
         openApp(e.target);
         holdTimer = null;
@@ -125,7 +130,6 @@ async function startDrag(icon, e) {
     const cs = window.getComputedStyle(icon);
     preview.style.backgroundImage = cs.backgroundImage;
     preview.style.backgroundColor = cs.backgroundColor;
-    preview.style.borderRadius = cs.borderRadius;
     preview.style.backgroundSize = cs.backgroundSize;
     preview.style.backgroundPosition = cs.backgroundPosition;
     preview.style.backgroundRepeat = cs.backgroundRepeat;
@@ -176,7 +180,7 @@ function pointerMovingIcon(e) {
 
     const x = clientX - phoneRect.left;
     const y = clientY - phoneRect.top;
-
+    // ==== CHECK KHOẢNG CÁCH ====
     const dx = x - startXMovingIcon;
     const dy = y - startYMovingIcon;
     const distance = Math.sqrt(dx * dx + dy * dy);
@@ -201,20 +205,19 @@ function pointerMovingIcon(e) {
 
 function handleAutoScroll(x) {
     const scrollContainer = document.getElementById("horizontalScrollAppScreen");
-    const threshold = 20; 
+    const threshold = 20; // px mép trái/phải để kích hoạt
 
     clearInterval(autoScrollInterval);
 
-
     if (x < threshold) {
-
+        // sát bên trái
         autoScrollInterval = setInterval(() => {
             if (scrollContainer.scrollLeft > 0) {
                 scrollContainer.scrollBy({left: -10, behavior: "smooth"});
             }
         }, 11 - 0);
     } else if (phoneRect.width - x < threshold) {
- 
+        // sát bên phải
         autoScrollInterval = setInterval(() => {
             const maxScroll = scrollContainer.scrollWidth - scrollContainer.clientWidth;
             if (scrollContainer.scrollLeft < maxScroll) {
@@ -263,18 +266,12 @@ async function finishDragAnimation({removeBlur = false}, timeout = 300) {
             ]);
             addAnimationWaterDrop(dragTarget, layers);
 
-            dragTarget.animate(
-                [
-                    {transform: "scale(1)", boxShadow: "0 0 3rem aqua"},
-                    {transform: "scale(0.9)", boxShadow: "0 0 0rem aqua"},
-                    {transform: "scale(1)"},
-                ],
-                {
-                    duration: timeout * 2,
-                    easing: "ease-out",
-                }
-            );
+            dragTarget.animate([{transform: "scale(1)"}, {transform: "scale(0.8)"}, {transform: "scale(1)"}], {
+                duration: 500,
+                easing: "ease-out",
+            });
         });
+        if (removeBlur) allApp.classList.remove("scaleForMovingApp");
 
         dragTarget.style.visibility = "";
         dragTarget = null;
@@ -283,8 +280,6 @@ async function finishDragAnimation({removeBlur = false}, timeout = 300) {
 
     if (timeout) {
         timeOutRemovePreviewIcon = setTimeout(timeoutF, timeout);
-
-        if (removeBlur) allApp.classList.remove("scaleForMovingApp");
 
         cleanupEmptyScreens();
         saveAppLayout();
@@ -402,6 +397,7 @@ function findSmartEmptySlot(x, y) {
 //--== save layout ==--
 //----==
 // ===========================
+// BIẾN TOÀN CỤC
 // ===========================
 let removedApps = [];
 let addedApps = [];
@@ -410,7 +406,7 @@ let isLoadingLayout = false;
 // ===========================
 // THÊM APP
 // ===========================
-function addApps(name = "none", appid = "none", background = "", anim = false) {
+function addApps(name = "none", appid = "none", background = "", anim = false, updateApp = true) {
     if (document.querySelectorAll(".iconApp").length >= 60) {
         tb_system("maximum is 60 applications");
         return;
@@ -418,7 +414,7 @@ function addApps(name = "none", appid = "none", background = "", anim = false) {
     if (currentOpeningElApp) {
         addScriptForCloseApp(() => {
             setTimeout(() => {
-                addApps(name, appid, background, anim);
+                addApps(name, appid, background, anim, updateApp);
             }, 700 * speed);
         });
         closeApp();
@@ -432,9 +428,10 @@ function addApps(name = "none", appid = "none", background = "", anim = false) {
         appid = originalId + counter;
         counter++;
     }
-
+    // Nếu app này từng bị xoá gỡ khỏi danh sách xoá
     removedApps = removedApps.filter((id) => id !== appid);
 
+    // Tạo icon app
     const icon = document.createElement("div");
     icon.className = "iconApp";
     icon.dataset.app = appid;
@@ -444,6 +441,7 @@ function addApps(name = "none", appid = "none", background = "", anim = false) {
     label.textContent = name;
     icon.appendChild(label);
 
+    // Sự kiện giữ để di chuyển
     icon.addEventListener("pointerdown", (e) => {
         e.preventDefault();
 
@@ -473,6 +471,7 @@ function addApps(name = "none", appid = "none", background = "", anim = false) {
         window.addEventListener("mousemove", clearTimeoutHoldTimer);
     });
 
+    // Tạo app box
     const appBox = document.createElement("div");
     appBox.className = "app";
     appBox.id = appid;
@@ -483,6 +482,7 @@ function addApps(name = "none", appid = "none", background = "", anim = false) {
     `;
     document.getElementById("allAppIconScreen").appendChild(appBox);
 
+    // Tìm screen còn chỗ trống
     let placed = false;
 
     for (let i = parseInt(String(currentAppScreen.id).slice(-1)); i <= screenCounter; i++) {
@@ -504,6 +504,7 @@ function addApps(name = "none", appid = "none", background = "", anim = false) {
             }
         });
 
+        // Tìm ô trống đầu tiên
         for (let r = 1; r <= maxRows && !placed; r++) {
             for (let c = 1; c <= maxCols && !placed; c++) {
                 if (!occupied[r - 1][c - 1]) {
@@ -518,6 +519,7 @@ function addApps(name = "none", appid = "none", background = "", anim = false) {
         if (placed) break;
     }
 
+    // Nếu full → tạo màn hình mới
     if (!placed) {
         const newScreen = createAppScreen();
         newScreen.id = `appScreen${screenCounter}`;
@@ -525,27 +527,32 @@ function addApps(name = "none", appid = "none", background = "", anim = false) {
         newScreen.appendChild(icon);
     }
 
+    // Ghi nhớ app mới tạo
     addedApps.push({id: appid, name, background});
 
+    // Lưu & cập nhật
     saveAppLayout();
-    if (anim)
-        updateAppPosNoRemove(() => {
-            const layers = findWaterDrop(icon, icon.parentElement);
-            addAnimationWaterDrop(icon, layers);
+    if (updateApp) {
+        if (anim)
+            updateAppPositions(() => {
+                const layers = findWaterDrop(icon, icon.parentElement);
+                addAnimationWaterDrop(icon, layers);
 
-            icon.animate([{transform: "scale(1)"}, {transform: "scale(0.9)"}, {transform: "scale(1)"}], {
-                duration: 600,
-                easing: "ease-out",
-            });
-        }, icon.parentElement);
-    else updateAppPosNoRemove(() => {}, icon.parentElement);
+                // box trung tâm
+                icon.animate([{transform: "scale(1)"}, {transform: "scale(0.9)"}, {transform: "scale(1)"}], {
+                    duration: 600,
+                    easing: "ease-out",
+                });
+            }, icon.parentElement);
+        else updateAppPositions(() => {}, icon.parentElement);
+    }
 }
 
 // ===========================
 // XOÁ APP
 // ===========================
 function removeApp(appId) {
-
+    // Xóa icon
     const el1 = document.querySelector(`[data-app="${appId}"]`);
     const el2 = document.getElementById(appId);
 
@@ -556,9 +563,11 @@ function removeApp(appId) {
     if (el1) el1.remove();
     if (el2) el2.remove();
 
+    // Ghi nhớ là app này đã xóa
     if (!removedApps.includes(appId)) removedApps.push(appId);
     addedApps = addedApps.filter((app) => app.id !== appId);
 
+    // Sau đó có thể gọi saveAppLayout()
     saveAppLayout();
 
     if (holdTimer) clearTimeout(holdTimer);
@@ -586,7 +595,7 @@ function removeApp(appId) {
 }
 
 // ===========================
-// animation
+// animation gợn sóng
 // ===========================
 
 function getGridPositionForWaterAnimation(el) {
@@ -613,7 +622,7 @@ function getDirectionVector(fromBox, toBox) {
 }
 
 function findWaterDrop(centerBox, gridBox) {
-
+    // nếu truyền vào 1 element → tìm box con bên trong
     if (gridBox instanceof HTMLElement) {
         gridBox = [...gridBox.querySelectorAll(".iconApp")];
     }
@@ -642,11 +651,11 @@ function findWaterDrop(centerBox, gridBox) {
 }
 
 function addAnimationWaterDrop(centerBox, layerBoxes) {
-    const maxScale = 1.21;
-    const scaleStep = 0.05;
+    const maxScale = 0.75; // layer gần nhất
+    const scaleStep = -0.06;
 
-    const maxTranslate = 15;
-    const translateStep = 2;
+    const maxTranslate = -15; // layer gần nhất
+    const translateStep = -3;
 
     const delayStep = 70;
 
@@ -661,9 +670,9 @@ function addAnimationWaterDrop(centerBox, layerBoxes) {
         const boxes = layerBoxes[key];
         const layerIndex = index;
 
-        const scale = Math.max(maxScale - scaleStep * (layerIndex - 1), 1);
+        const scale = Math.min(maxScale - scaleStep * (layerIndex - 1), 1);
 
-        const magnitude = Math.max(maxTranslate - translateStep * (layerIndex - 1), 0);
+        const magnitude = Math.min(maxTranslate - translateStep * (layerIndex - 1), 0);
 
         const delay = delayStep * (layerIndex - 1);
 
@@ -691,14 +700,12 @@ function addAnimationWaterDrop(centerBox, layerBoxes) {
         });
     });
 }
-{
-}
 
 // ===========================
 // LƯU APP LAYOUT
 // ===========================
 function saveAppLayout() {
-    if (isLoadingLayout) return;
+    if (isLoadingLayout) return; // Không lưu khi đang khôi phục
 
     const layout = [];
     const screens = document.querySelectorAll(".appScreen, #favApp");
@@ -739,12 +746,14 @@ function loadAppLayout() {
     removedApps = savedRemoved || [];
     addedApps = savedAdded || [];
 
+    // Tạo lại các app nếu chưa có
     addedApps.forEach((app) => {
         if (!document.querySelector(`[data-app="${app.id}"]`)) {
-            addApps(app.name, app.id, app.background);
+            addApps(app.name, app.id, app.background, 0, 0);
         }
     });
 
+    // Khôi phục vị trí từng app
     layout.forEach((item) => {
         const icon = document.querySelector(`[data-app="${item.id}"]`);
         let container = document.getElementById(item.screen);
@@ -761,6 +770,7 @@ function loadAppLayout() {
         }
     });
 
+    // Xóa app bị gỡ
     removedApps.forEach((appId) => {
         document.querySelector(`[data-app="${appId}"]`)?.remove();
         document.getElementById(appId)?.remove();
@@ -815,7 +825,7 @@ function setBackgroundColor(box, imageUrl) {
                 const alpha = imgData[i + 3];
 
                 if (alpha > 0) {
-
+                    // Lấy màu tại điểm đó (đã bao gồm bù trừ step nhờ việc resize)
                     finalColor = `rgb(${imgData[i]}, ${imgData[i + 1]}, ${imgData[i + 2]})`;
                     break;
                 }
@@ -834,27 +844,26 @@ async function updateAppPositions(script = function () {}) {
     const phone = document.getElementById("allAppIconScreen");
     const phoneRect = phone.getBoundingClientRect();
     const innerW = phoneRect.width;
-    const innerH = phoneRect.height;
     const centerX = innerW / 2;
 
     let styleTag = document.getElementById("dynamicAppPos");
     if (styleTag) styleTag.remove();
+
     styleTag = document.createElement("style");
     styleTag.id = "dynamicAppPos";
     document.head.appendChild(styleTag);
 
     let cssRules = "";
-
     const icons = document.querySelectorAll(".iconApp");
 
     for (const icon of icons) {
         const appId = icon.dataset.app;
-        const appEl = document.getElementById(appId);
-        if (!appEl) continue;
+        if (!document.getElementById(appId)) continue;
 
         const r = icon.getBoundingClientRect();
+
         const relLeft = r.left - phoneRect.left;
-        const relTop = r.top - phoneRect.top;
+        const relBottom = phoneRect.bottom - r.bottom; // FIX
 
         const iconW = Math.round(r.width);
         const iconH = Math.round(r.height);
@@ -869,15 +878,27 @@ async function updateAppPositions(script = function () {}) {
         await setBackgroundColor(icon, cs.backgroundImage.replace(/url\(["']?(.+?)["']?\)/, "$1"));
 
         cssRules += `
-            #${appId}{ ${posX}:${offsetX}px; ${top}:${Math.round(relTop)}px; width:${iconW}px; height:${iconH}px; }
-            #${appId}.open{ ${posX}:0; ${top}:50%; translate:0 -50%; height: 100%; width: 100%; }
-            #${appId}::before{ background:${bg}; }
-        `;
+#${appId}{
+    ${posX}:${offsetX}px;
+    bottom:${Math.round(relBottom)}px;
+    width:${iconW}px;
+    height:${iconH}px;
+}
+#${appId}.open{
+    ${posX}:0;
+    bottom:50%;
+    translate:0 50%;
+    width:100%;
+    height:100%;
+}
+#${appId}::before{
+    background:${bg};
+}`;
     }
 
     styleTag.textContent = cssRules;
-
-    if (script) script();
+    script();
+    console.log("update");
 }
 
 function upsertCssRule(sheet, selector, cssText) {
@@ -946,10 +967,12 @@ async function updateAppPosNoRemove(script = function () {}, screen = currentApp
             if (script) script();
 
             resolve();
+            console.log("updateNoRemove");
         });
     });
 }
 
+// Hàm tìm appScreen ở giữa màn hình
 function updateCurrentAppScreen() {
     const screens = scrollAppScreen.querySelectorAll(".appScreen");
     const containerRect = scrollAppScreen.getBoundingClientRect();
@@ -973,12 +996,14 @@ function updateCurrentAppScreen() {
 
     currentAppScreen = closest;
 
+    // ----  dot  ----
     const dots = document.querySelectorAll("#pager .dot");
     dots.forEach((dot, i) => {
         dot.classList.toggle("active", i === closestIndex);
     });
 }
 
+// Dùng scroll + debounce bằng requestAnimationFrame
 let scrollTimeout = document.getElementById("appScreen1");
 let ticking = false;
 scrollAppScreen.addEventListener("scroll", () => {
@@ -1027,6 +1052,7 @@ function buildDots() {
     });
 }
 
+// mover icon
 function moverIconApp(icon) {
     const maxMove = 10;
 
@@ -1057,4 +1083,3 @@ function moverIconApp(icon) {
 
     icon.addEventListener("mouseleave", handleLeave);
 }
-

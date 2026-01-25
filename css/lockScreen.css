@@ -6,12 +6,14 @@
     z-index: 1000;
     transition: all calc(0.3s * var(--bg-speedAnimation));
 }
+.phone.off .lockContent {
+    filter: brightness(3);
+}
 .lockContent {
     position: absolute;
     display: flex;
     width: 100%;
     flex-direction: column;
-    align-items: center;
     top: 100px;
     color: color-mix(in oklab, var(--bg-colorLockClock), #00000000 var(--bg-opacityLockClock));
     font-family: var(--bg-fontLockClock);
@@ -22,7 +24,18 @@
 .lockContent div {
     display: flex;
     flex-direction: column;
+    transition: all calc(0.4s * var(--bg-speedAnimation));
+}
+.lockContent[data-posclock="center"] div {
     align-items: center;
+}
+.lockContent[data-posclock="left"] div {
+    align-items: start;
+    transform: translateX(10px);
+}
+.lockContent[data-posclock="right"] div {
+    align-items: end;
+    transform: translateX(-10px);
 }
 .lockClock {
     font-size: 100px;
@@ -81,6 +94,7 @@
 .ani_fingerprint {
     scale: 2.5;
 }
+
 #scaleForOff {
     transition: transform calc(0.3s * var(--bg-speedAnimation));
     transform-origin: center;
@@ -89,4 +103,7 @@
 }
 #phone.off #scaleForOff {
     transform: scale(0.98);
+}
+#phone.off .lockContent div {
+    transform: none;
 }

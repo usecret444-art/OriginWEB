@@ -67,10 +67,11 @@
 }
 
 .status-battery {
+    position: relative;
     display: flex;
     margin-right: calc(0.09px * var(--bg-widthPhone));
-    width: 20px;
-    height: 11px;
+    width: 18px;
+    height: 10px;
     background: rgba(78, 78, 78, 0.5);
     border-radius: 3px;
     align-items: center;
@@ -80,17 +81,18 @@
 }
 .batterySmall {
     position: absolute;
-    display: none;
-    width: 2px;
-    height: 8px;
-    border-radius: 3px;
-    background: rgba(78, 78, 78, 0.5);
+    right: 0;
+    translate: 100% 0;
+    width: 1px;
+    height: 5px;
+    border-top-right-radius: 3px;
+    border-bottom-right-radius: 3px;
+    background: white;
 }
 .batteryLevel {
     left: 0%;
     height: 100%;
     width: calc(100%);
-    border-radius: 4px;
     background: white;
 }
 .containerBattery {
@@ -100,9 +102,17 @@
     border-radius: 3px;
 }
 .batteryNum {
+    display: flex;
     position: absolute;
-    font-family: "Fredoka";
-    font-weight: bold;
+    font-family: "gf_Roboto_Flex variant0", Helvetica;
     font-size: 9px;
     color: rgb(49, 49, 49);
+    justify-content: center;
+    align-items: center;
+    font-weight: 800;
+    font-stretch: 25%;
+    font-optical-sizing: auto;
+    font-variation-settings: "XTRA" 323;
+    font-style: normal;
+    inset: 0;
 }

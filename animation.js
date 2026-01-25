@@ -41,8 +41,8 @@ function addScriptForCloseApp(script) {
             appel.style.opacity = "";
             timeOutClosingApp[appel.id] = null;
             scrollAppScreen.style.pointerEvents = "";
-            removeScript(`./appData/${appel.id}/js/open/open.js`);
-            runScript(`./appData/${appel.id}/js/close/close.js`);
+            removeScript(`/OriginWEB/appData/${appel.id}/js/open/open.js`);
+            runScript(`/OriginWEB/appData/${appel.id}/js/close/close.js`);
         }, 800 * speed);
         scriptForCloseApp();
         closeApp = function () {
@@ -77,8 +77,8 @@ function addScriptForCloseApp(script) {
                 appel.style.opacity = "";
                 timeOutClosingApp[appel.id] = null;
                 scrollAppScreen.style.pointerEvents = "";
-                removeScript(`./appData/${appel.id}/js/open/open.js`);
-                runScript(`./appData/${appel.id}/js/close/close.js`);
+                removeScript(`/OriginWEB/appData/${appel.id}/js/open/open.js`);
+                runScript(`/OriginWEB/appData/${appel.id}/js/close/close.js`);
             }, 800 * speed);
         };
     };
@@ -87,6 +87,7 @@ function addScriptForCloseApp(script) {
 function openApp(el) {
     currentOpeningEl = el;
     currentOpeningElApp = document.getElementById(currentOpeningEl.dataset.app);
+    if (currentOpeningElApp.classList.contains("multiClick")) currentOpeningElApp.classList.remove("multiClick");
     const appDisplay = currentOpeningElApp.querySelector(".appDisplay");
 
     currentOpeningElApp.style.transition = ``;
@@ -107,10 +108,10 @@ function openApp(el) {
     timeOutOpeningApp[currentOpeningElApp.id] = setTimeout(() => {
         appel.style.pointerEvents = "auto";
         timeOutOpeningApp[appel.id] = null;
-    }, 400 * speed);
+    }, 200 * speed);
 
-    removeScript(`./appData/${currentOpeningEl.dataset.app}/js/close/close.js`);
-    runScript(`./appData/${currentOpeningEl.dataset.app}/js/open/open.js`);
+    removeScript(`/OriginWEB/appData/${currentOpeningEl.dataset.app}/js/close/close.js`);
+    runScript(`/OriginWEB/appData/${currentOpeningEl.dataset.app}/js/open/open.js`);
 }
 
 let scaleAllAppReverse = 1 / 0.86;
@@ -144,8 +145,8 @@ function closeApp() {
         appel.style.opacity = "";
         timeOutClosingApp[appel.id] = null;
         scrollAppScreen.style.pointerEvents = "";
-        removeScript(`./appData/${appel.id}/js/open/open.js`);
-        runScript(`./appData/${appel.id}/js/close/close.js`);
+        removeScript(`/OriginWEB/appData/${appel.id}/js/open/open.js`);
+        runScript(`/OriginWEB/appData/${appel.id}/js/close/close.js`);
     }, 700 * speed);
 }
 function closeAppToCenter() {
@@ -189,8 +190,8 @@ function closeAppToCenter() {
 
         appel.classList.remove("open");
         scrollAppScreen.style.pointerEvents = "";
-        removeScript(`./appData/${appel.id}/js/open/open.js`);
-        runScript(`./appData/${appel.id}/js/close/close.js`);
+        removeScript(`/OriginWEB/appData/${appel.id}/js/open/open.js`);
+        runScript(`/OriginWEB/appData/${appel.id}/js/close/close.js`);
 
         appel.anim.onfinish = null;
         appel.anim = null;
@@ -207,11 +208,11 @@ function isVisuallyInsidePhone(el) {
     );
 }
 
-function updateTransform(y, x) {
+function updateTransform(y, x, d = "0.1") {
     y = Math.max(0, y);
     y = Math.min(140, y);
 
-    currentOpeningElApp.style.transition = `all 0.08s`;
+    currentOpeningElApp.style.transition = `all ${d}s`;
     currentOpeningElApp.style.transform = `translateX(${x}px) translateY(${-y}px) scale(${1 - y / 280})`;
 }
 
@@ -226,66 +227,106 @@ let deltaY = 0;
 let deltaX = 0;
 let dragging = false;
 
-nav.addEventListener("touchstart", (e) => {
+function onTouchStartNav(e) {
     if (!currentOpeningElApp) return;
     currentOpeningEl.classList.add("hidden");
+
     startY = e.touches[0].clientY;
     startX = e.touches[0].clientX;
-
     deltaY = 0;
     deltaX = 0;
-});
-
-nav.addEventListener(
-    "touchmove",
-    (e) => {
-        e.preventDefault();
-        if (!currentOpeningElApp) return;
-        deltaY = startY - e.touches[0].clientY;
-        deltaX = e.touches[0].clientX - startX;
-        updateTransform(deltaY, deltaX);
-    },
-    {
-        passive: false,
-    }
-);
-
-nav.addEventListener("touchend", () => {
+}
+function onTouchMoveNav(e) {
+    e.preventDefault();
     if (!currentOpeningElApp) return;
+
+    deltaY = startY - e.touches[0].clientY;
+    deltaX = e.touches[0].clientX - startX;
+    updateTransform(deltaY, deltaX);
+}
+function onTouchEndNav() {
+    if (!currentOpeningElApp) return;
+
     if (deltaY > 40) closeApp();
     else resetpop();
+
     deltaY = 0;
     deltaX = 0;
-});
-
-nav.addEventListener("mousedown", (e) => {
+}
+function onMouseDownNav(e) {
     deltaY = 0;
     deltaX = 0;
     startY = 0;
     startX = 0;
 
     if (!currentOpeningElApp) return;
+
     currentOpeningElApp.style.pointerEvents = "none";
     currentOpeningEl.classList.add("hidden");
     dragging = true;
+
     startY = e.clientY;
     startX = e.clientX;
-});
-
-window.addEventListener("mousemove", (e) => {
+}
+function onMouseMoveNav(e) {
     if (!dragging || !currentOpeningElApp) return;
     deltaY = startY - e.clientY;
     deltaX = e.clientX - startX;
-    updateTransform(deltaY, deltaX);
-});
 
-window.addEventListener("mouseup", () => {
+    updateTransform(deltaY, deltaX, "0");
+
+    // navOvlay.style.transform = `translateX(${deltaX}px) translateY(${-deltaY}px)`;
+}
+function onMouseUpNav() {
     if (!dragging || !currentOpeningElApp) return;
+
     currentOpeningElApp.style.pointerEvents = "all";
     dragging = false;
+
+    // navOvlay.style.transform = "";
     if (deltaY > 40) closeApp();
     else resetpop();
-});
+}
+function addNavDragListeners() {
+    nav.addEventListener("touchstart", onTouchStartNav);
+    nav.addEventListener("touchmove", onTouchMoveNav, {passive: false});
+    nav.addEventListener("touchend", onTouchEndNav);
+
+    nav.addEventListener("mousedown", onMouseDownNav);
+    window.addEventListener("mousemove", onMouseMoveNav);
+    window.addEventListener("mouseup", onMouseUpNav);
+}
+function removeNavDragListeners() {
+    nav.removeEventListener("touchstart", onTouchStartNav);
+    nav.removeEventListener("touchmove", onTouchMoveNav);
+    nav.removeEventListener("touchend", onTouchEndNav);
+
+    nav.removeEventListener("mousedown", onMouseDownNav);
+    window.removeEventListener("mousemove", onMouseMoveNav, {passive: false});
+    window.removeEventListener("mouseup", onMouseUpNav);
+}
+addNavDragListeners();
+
+navStyle(localStorage.getItem("nav") || "0");
+document
+.querySelector(`#app_SettingsAppSysNav [data-nav="${localStorage.getItem("nav") || "swipe"}"]`)
+.classList.add("active");
+
+function navStyle(style = "swipe" | "buttonStyle") {
+    if (style == "buttonStyle" && nav.className != "buttonStyle") {
+        removeNavDragListeners();
+        nav.className = style;
+        nav.onclick = function () {
+            if (currentOpeningElApp) closeApp();
+        };
+        localStorage.setItem("nav", style);
+    } else if (style == "swipe" && nav.className != "swipe") {
+        addNavDragListeners();
+        nav.className = style;
+        nav.onclick = null;
+        localStorage.setItem("nav", style);
+    }
+}
 
 // Lưu animation hiện tại theo id app
 const appAnimations = {};
@@ -332,8 +373,8 @@ function closeAppToCenterWithScript(script) {
 
         appel.classList.remove("open");
         scrollAppScreen.style.pointerEvents = "";
-        removeScript(`./appData/${appel.id}/js/open/open.js`);
-        runScript(`./appData/${appel.id}/js/close/close.js`);
+        removeScript(`/OriginWEB/appData/${appel.id}/js/open/open.js`);
+        runScript(`/OriginWEB/appData/${appel.id}/js/close/close.js`);
 
         script();
     };
@@ -385,8 +426,8 @@ function closeAppToLeft() {
         appDisplay.style.display = "";
         appel.classList.remove("open");
         scrollAppScreen.style.pointerEvents = "";
-        removeScript(`./appData/${appel.id}/js/open/open.js`);
-        runScript(`./appData/${appel.id}/js/close/close.js`);
+        removeScript(`/OriginWEB/appData/${appel.id}/js/open/open.js`);
+        runScript(`/OriginWEB/appData/${appel.id}/js/close/close.js`);
 
         // Xoá animation đã xong
         delete appAnimations[appel.id];
@@ -410,8 +451,6 @@ function openAppByID(idApp) {
     currentOpeningElApp = document.getElementById(idApp);
     currentOpeningEl = document.querySelector(`[data-app='${idApp}']`);
     const appDisplay = currentOpeningElApp.querySelector(".appDisplay");
-
-    // Nếu app đang có animation đóng -> cancel
 
     currentOpeningElApp.style.transition = `none`;
 
@@ -449,10 +488,9 @@ function openAppByID(idApp) {
 
         const temp = currentOpeningEl;
         anim.onfinish = () => {
-            removeScript(`./appData/${temp.dataset.app}/js/close/close.js`);
-            runScript(`./appData/${temp.dataset.app}/js/open/open.js`);
+            removeScript(`/OriginWEB/appData/${temp.dataset.app}/js/close/close.js`);
+            runScript(`/OriginWEB/appData/${temp.dataset.app}/js/open/open.js`);
 
-            // Xoá animation đã xong
             delete appAnimations[appel.id];
         };
     } else {
@@ -466,10 +504,9 @@ function openAppByID(idApp) {
 
             const temp = currentOpeningEl;
             anim.onfinish = () => {
-                removeScript(`./appData/${temp.dataset.app}/js/close/close.js`);
-                runScript(`./appData/${temp.dataset.app}/js/open/open.js`);
+                removeScript(`/OriginWEB/appData/${temp.dataset.app}/js/close/close.js`);
+                runScript(`/OriginWEB/appData/${temp.dataset.app}/js/open/open.js`);
 
-                // Xoá animation đã xong
                 delete appAnimations[appel.id];
             };
         }
@@ -496,8 +533,6 @@ function openAppByIDFromIslandWithScript(idApp, script) {
     currentOpeningElApp = document.getElementById(idApp);
     currentOpeningEl = document.querySelector(`[data-app='${idApp}']`);
     const appDisplay = currentOpeningElApp.querySelector(".appDisplay");
-
-    // Nếu app đang có animation đóng -> cancel
 
     currentOpeningElApp.style.transition = `none`;
 
@@ -535,10 +570,9 @@ function openAppByIDFromIslandWithScript(idApp, script) {
 
         const temp = currentOpeningEl;
         anim.onfinish = () => {
-            removeScript(`./appData/${temp.dataset.app}/js/close/close.js`);
-            runScript(`./appData/${temp.dataset.app}/js/open/open.js`);
+            removeScript(`/OriginWEB/appData/${temp.dataset.app}/js/close/close.js`);
+            runScript(`/OriginWEB/appData/${temp.dataset.app}/js/open/open.js`);
 
-            // Xoá animation đã xong
             delete appAnimations[appel.id];
         };
     } else {
@@ -557,12 +591,11 @@ function openAppByIDFromIslandWithScript(idApp, script) {
             const temp = currentOpeningEl;
 
             timeOutOpeningApp[appel.id] = setTimeout(() => {
-                removeScript(`./appData/${temp.dataset.app}/js/close/close.js`);
-                runScript(`./appData/${temp.dataset.app}/js/open/open.js`);
+                removeScript(`/OriginWEB/appData/${temp.dataset.app}/js/close/close.js`);
+                runScript(`/OriginWEB/appData/${temp.dataset.app}/js/open/open.js`);
 
                 timeOutOpeningApp[appel.id] = null;
 
-                // Xoá animation đã xong
                 delete appAnimations[appel.id];
             }, 650);
             setTimeout(() => {
@@ -597,8 +630,6 @@ function openAppByIDFromCameraBtn(idApp) {
     currentOpeningElApp = document.getElementById(idApp);
     currentOpeningEl = document.querySelector(`[data-app='${idApp}']`);
     const appDisplay = currentOpeningElApp.querySelector(".appDisplay");
-
-    // Nếu app đang có animation đóng -> cancel
 
     currentOpeningElApp.style.transition = `none`;
 
@@ -641,11 +672,10 @@ function openAppByIDFromCameraBtn(idApp) {
 
         const temp = currentOpeningEl;
         anim.onfinish = () => {
-            // Xoá animation đã xong
             delete appAnimations[appel.id];
 
-            removeScript(`./appData/${temp.dataset.app}/js/close/close.js`);
-            runScript(`./appData/${temp.dataset.app}/js/open/open.js`);
+            removeScript(`/OriginWEB/appData/${temp.dataset.app}/js/close/close.js`);
+            runScript(`/OriginWEB/appData/${temp.dataset.app}/js/open/open.js`);
         };
     } else {
         if (alreadyOpen1) {
@@ -665,11 +695,10 @@ function openAppByIDFromCameraBtn(idApp) {
             timeOutOpeningApp[appel.id] = setTimeout(() => {
                 timeOutOpeningApp[appel.id] = null;
 
-                // Xoá animation đã xong
                 delete appAnimations[appel.id];
 
-                removeScript(`./appData/${temp.dataset.app}/js/close/close.js`);
-                runScript(`./appData/${temp.dataset.app}/js/open/open.js`);
+                removeScript(`/OriginWEB/appData/${temp.dataset.app}/js/close/close.js`);
+                runScript(`/OriginWEB/appData/${temp.dataset.app}/js/open/open.js`);
             }, 650);
 
             setTimeout(() => {
@@ -677,4 +706,18 @@ function openAppByIDFromCameraBtn(idApp) {
             }, 650);
         }
     }
+}
+function cancelIfAnimating(el) {
+    if (!el) return false;
+
+    const animations = el.getAnimations();
+
+    if (animations.length === 0) return false;
+
+    animations.forEach((anim) => anim.cancel());
+
+    el.style.transition = "none";
+    el.offsetHeight;
+
+    return true;
 }

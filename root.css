@@ -1,19 +1,20 @@
 :root {
     --bg-widthPhone: 280;
     --bg-heightPhone: 617;
-    --bg-borderRadiusPhone: calc(41px * 1);
+    --bg-borderRadiusPhone: 38px;
 
     --bg-borderRadiusSys: 25px;
 
     --bg-borderRadiusIcon: 17px;
     --bg-scaleIcon: 0.9;
+    --bg-scaleIconName: 0.85;
 
-    --bg-wallpaperHome: url("https://quandz24-ui.github.io/OriginWEB/originData/wallpaper/wallpaper_2.png");
-    --bg-wallpaperLock: url("https://quandz24-ui.github.io/OriginWEB/originData/wallpaper/wallpaper_1.png");
+    --bg-wallpaperHome: url("/OriginWEB/originData/wallpaper/wallpaper_2.png");
+    --bg-wallpaperLock: url("/OriginWEB/originData/wallpaper/wallpaper_1.png");
 
-    --bg-itemBackground: #171717;
-    --bg-appbackground: #000000;
-    --bg-color: #fff;
+    --bg-itemBackground: rgb(255, 255, 255);
+    --bg-appbackground: rgb(234, 234, 234);
+    --bg-color: rgb(0, 0, 0);
 
     --bg-colorForBackground: white;
 
@@ -32,6 +33,13 @@
 
     /* color of phone's border */
     --bg-phoneColor: #bcbcbc;
+
+    --bg-advancedBlur: 0px;
+
+    --nav-size: 7px;
+    --nav-buttonStyleSize: 35px;
+    --nav-padding: calc(var(--nav-size) * 2);
+    --nav-paddingTouch: 30px;
 }
 * {
     -webkit-tap-highlight-color: transparent;
@@ -45,7 +53,17 @@
     --bg-fontWeightLockClock: 500;
     --bg-opacityLockClock: 30%;
 }
+:root {
+    /*animation*/
+    --animOpeningApp-cubicBezier: cubic-bezier(0.15, 0.1, 0.15, 1);
+    --animClosingApp-cubicBezier: cubic-bezier(0.35, 1.1, 0.33, 1);
+}
 
+:root:has(#nav.buttonStyle) {
+    --nav-size: 19px;
+    --nav-padding: calc(var(--nav-size) * 2);
+    --nav-paddingTouch: 35px;
+}
 .horizontalScroll {
     display: flex;
     gap: 10px;
@@ -74,6 +92,9 @@
     background-size: cover;
     background-position: center;
     transition: 0.3s;
+}
+.horizontalScroll .itemChild.noBorder {
+    border: none;
 }
 .horizontalScroll .itemChild:active {
     transition: 0.1s;
@@ -228,9 +249,14 @@ nav {
     pointer-events: none !important;
 }
 .darkMode {
-    --bg-itemBackground: #171717;
-    --bg-appbackground: #000000;
-    --bg-color: #fff;
+    --bg-itemBackground: rgb(23, 23, 23) !important;
+    --bg-appbackground: rgb(0, 0, 0) !important;
+    --bg-color: rgb(255, 255, 255) !important;
+}
+.lightMode {
+    --bg-itemBackground: #fff !important;
+    --bg-appbackground: #eaeaea !important;
+    --bg-color: #000 !important;
 }
 
 .activeBorder {
@@ -277,9 +303,11 @@ nav {
 
 .select .selectBoxs {
     position: absolute;
+    width: max-content;
     top: calc(100% + 8px);
     right: 0;
     background: var(--bg-itemBackground);
+    box-shadow: 0 0 15px #00000030;
     border-radius: 12px;
     padding: 4px;
     opacity: 0;
@@ -288,19 +316,21 @@ nav {
     transform: scale(0.05);
     transition: all 0.3s cubic-bezier(0.2, 0.8, 0.2, 1), opacity 0.2s ease;
     z-index: 100;
+    max-width: 150px;
 }
 .select.left .selectBoxs {
     transform-origin: top right;
-    transform: scale(0.05) translate();
+    transform: scale(0.05) translate(-10px 10px);
 }
-select.right .selectBoxs {
+.select.right .selectBoxs {
     transform-origin: top left;
+    transform: scale(0.05) translate(10px 10px);
 }
 
 .select .selectBoxs.open {
     opacity: 1;
     pointer-events: auto;
-    transform: translateY(0) scale(1);
+    transform: scale(1);
 }
 
 .select .itemChild {
@@ -332,4 +362,8 @@ right {
     display: flex;
     width: 50%;
     justify-content: end;
+}
+.divider {
+    width: 1px;
+    background: gray;
 }
