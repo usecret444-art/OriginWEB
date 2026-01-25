@@ -15,7 +15,7 @@ window.addEventListener("DOMContentLoaded", async () => {
         //    );
         // }
     }
-    // === hình nền đã lưu ===
+
     const wallpaperLock = localStorage.getItem("wallpaperLock");
 
     if (wallpaperLock) {
@@ -44,12 +44,10 @@ window.addEventListener("DOMContentLoaded", async () => {
         document.documentElement.style.setProperty("--bg-wallpaperHome", wallpaperHome);
     }
 
-    // === tên thiết bị đã lưu ===
     document.getElementById("rightBigTextNameDeviceInAbout").textContent =
         localStorage.getItem("rightBigTextNameDeviceInAbout") || "Click to rename";
     document.getElementById("phoneName").textContent = localStorage.getItem("phoneName") || "Click to rename";
 
-    // === lấy các thông tin trong phần giới thiệu (ứng dụng cài đặt) ===
 
     if ("hardwareConcurrency" in navigator) {
         const cores = navigator.hardwareConcurrency;
@@ -58,7 +56,6 @@ window.addEventListener("DOMContentLoaded", async () => {
         document.getElementById("CPUCore").textContent = "Not supported";
     }
 
-    // === Lấy thông tin GPU qua WebGL ===
     function getGPUInfo() {
         const canvas = document.createElement("canvas");
         const gl = canvas.getContext("webgl") || canvas.getContext("experimental-webgl");
@@ -101,7 +98,6 @@ window.addEventListener("DOMContentLoaded", async () => {
     // load clock app
     loadHTMLInto("#app_clock .appDisplay", "/OriginWEB/appData/app_clock/html/html.html");
     loadHTMLInto("#app_calculator .appDisplay", "/OriginWEB/appData/app_calculator/html/html.html");
-    // === các function cần khi mở web ===
     loadAppLayout();
     cleanupEmptyScreens();
     buildDots();
@@ -109,7 +105,7 @@ window.addEventListener("DOMContentLoaded", async () => {
     //openEditorHomeScreen();
     // createPasswordScreen();
 
-    //showLockScreen();
+    showLockScreen();
     if (doubleTapOnOff) {
         lockScreen.addEventListener("click", powerOff2TapLockScreen);
         //scrollAppScreen.addEventListener("click", powerOff2TapHomeScreen);
@@ -119,9 +115,6 @@ window.addEventListener("DOMContentLoaded", async () => {
 
     //openApp(document.querySelector('[data-app="app_settings"]'));
 
-    setTimeout(() => {
-        //unlockAnimWA();
-    }, 500);
 
     // load from localstorage
     {
@@ -408,3 +401,4 @@ function formatSize(bytes) {
     if (bytes < 1024 * 1024) return (bytes / 1024).toFixed(2) + " KB";
     return (bytes / 1024 / 1024).toFixed(2) + " MB";
 }
+
