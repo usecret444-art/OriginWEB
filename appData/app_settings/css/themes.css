@@ -36,6 +36,14 @@
     transform: scale(0.97);
 }
 
+.grid2x3 [data-openappid="app_SettingsAppAOD"] {
+    background-color: #0b0b0b;
+}
+.grid2x3 [data-openappid="app_SettingsAppPhoneColor"] .phonePreview {
+    position: absolute;
+    top: 10px;
+}
+
 .grid2x3 .itemChild .containerPreIcon {
     position: absolute;
     display: grid;
@@ -53,16 +61,16 @@
     border-radius: calc(2 / 3 * var(--bg-borderRadiusIcon));
 }
 .grid2x3 .itemChild .containerPreIcon .icon.app_settings {
-    background: url(/originData/iconPacks/origin_icon/settings.png) no-repeat center center/105%;
+    background: url("/OriginWEB/originData/iconPacks/origin_icon/app_settings.png") no-repeat center center/105%;
 }
 .grid2x3 .itemChild .containerPreIcon .icon.app_files {
-    background: url(/originData/iconPacks/origin_icon/files.png) no-repeat center center/105%;
+    background: url("/OriginWEB/originData/iconPacks/origin_icon/app_files.png") no-repeat center center/105%;
 }
 .grid2x3 .itemChild .containerPreIcon .icon.app_music {
-    background: url(/originData/iconPacks/origin_icon/music.png) no-repeat center center/105%;
+    background: url("/OriginWEB/originData/iconPacks/origin_icon/app_music.png") no-repeat center center/105%;
 }
 .grid2x3 .itemChild .containerPreIcon .icon.app_calculator {
-    background: url(/originData/iconPacks/origin_icon/calculator.png) no-repeat center center/105%;
+    background: url("/OriginWEB/originData/iconPacks/origin_icon/app_calculator.png") no-repeat center center/105%;
 }
 
 #app_SettingsAppWallpaper h4 {
@@ -128,6 +136,16 @@
     transition: 0.3s;
 }
 
+#app_SettingsAppTheme .aodPre {
+    font-family: var(--bg-fontLockClock);
+    font-size: 35px;
+    height: 110px;
+    display: flex;
+    align-items: center;
+    color: color-mix(in oklab, var(--bg-colorLockClock), #00000000 var(--bg-opacityLockClock));
+    filter: brightness(3);
+}
+
 /* Lock editor */
 #app_SettingsAppLockEditor {
     --bg-itemBackground: #171717;
@@ -158,6 +176,8 @@
 .lockEditor-controls {
     transition: 0.4s;
     translate: 0 100%;
+    width: calc(100% - 2px);
+    padding-bottom: 30px;
 }
 .lockEditor-controls::before {
     content: "";
@@ -165,16 +185,25 @@
 }
 .lockEditor-phonePre {
     transition: 0.4s;
+    transform: scale(0.74) translateY(calc(-25px - var(--nav-padding)));
+}
+
+#app_SettingsAppLockEditor.active bottom {
+    transition: 0.4s;
+    transform: scale(0.9) translateY(150px);
 }
 #app_SettingsAppLockEditor.active .lockEditor-phonePre {
-    transform: scale(0.7) translateY(-80px);
+    transform: scale(0.6) translateY(-150px);
 }
 
 #app_SettingsAppLockEditor.lockClockEditor.active .lockClockEditor {
     translate: none;
 }
+#app_SettingsAppLockEditor.wallpaperStyleEditor.active .wallpaperStyleEditor {
+    translate: none;
+}
 
-#app_SettingsAppLockEditor.lockClockEditor .horizontalScroll {
+#app_SettingsAppLockEditor .lockClockEditor .horizontalScroll {
     scrollbar-color: #555 transparent;
     width: calc(100% - 20px);
     translate: 10px 0;
@@ -236,4 +265,92 @@
     padding: 5px;
     background: var(--bg-appbackground);
     border-radius: 50%;
+}
+#app_SettingsAppLockEditor bottom {
+    display: flex;
+    position: absolute;
+    bottom: var(--nav-padding);
+    transition: 0.5s;
+    gap: 5px;
+}
+#app_SettingsAppLockEditor bottom button {
+    background: var(--bg-itemBackground);
+    border: none;
+    border-radius: 100%;
+    transition: transform 0.3s;
+    width: 40px;
+    height: 40px;
+}
+#app_SettingsAppLockEditor bottom button:active {
+    transition: transform 0.1s;
+    transform: scale(0.9);
+}
+#app_SettingsAppLockEditor bottom button svg {
+    fill: var(--bg-color);
+    height: 20px;
+    width: 20px;
+}
+
+/* icon */
+
+#app_SettingsAppIcon .preview {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    padding-block: 20px;
+    width: 100%;
+    height: calc(55px * var(--bg-scaleIcon));
+    min-height: 55px;
+    border-radius: 15px;
+    opacity: 0.9999999;
+}
+#app_SettingsAppIcon .preview::before {
+    content: "";
+    position: absolute;
+    inset: 0;
+    background: var(--bg-wallpaperHome) no-repeat center center/100%;
+    border-radius: 25px;
+    filter: brightness(0.5);
+}
+#app_SettingsAppIcon .preview::after {
+    content: "";
+    position: absolute;
+    inset: 0;
+    border-radius: 25px;
+    backdrop-filter: blur(5px);
+}
+#app_SettingsAppIcon .preview .favApp {
+    bottom: unset;
+}
+#app_SettingsAppIcon .iconAppPre {
+    display: flex;
+    height: 55px;
+    width: 55px;
+    background: gray;
+    border-radius: var(--bg-borderRadiusIcon);
+    transition: transform calc(0.2s * var(--bg-speedAnimation)), translate calc(0.3s * var(--bg-speedAnimation)),
+        filter calc(0.1s * var(--bg-speedAnimation)), scale calc(0.1s * var(--bg-speedAnimation));
+    pointer-events: all;
+    scale: var(--bg-scaleIcon);
+}
+
+#app_SettingsAppIcon .iconAppPre label {
+    all: unset;
+    position: absolute;
+    font-family: "Fredoka";
+    font-size: 12px;
+    text-align: center;
+    top: 100%;
+    left: 50%;
+    translate: -50%;
+    pointer-events: none;
+    max-height: 24px;
+    width: 55px;
+    transform: scale(var(--bg-scaleIconName));
+
+    color: rgba(255, 255, 255, 0.9);
+    mix-blend-mode: difference;
+}
+.phone.hideIconText #app_SettingsAppIcon .iconAppPre label {
+    display: none;
 }

@@ -2,8 +2,8 @@
     width: calc(100% - 20px);
     aspect-ratio: 41 / 28;
     max-width: 350px;
-    border-radius: 17px;
-    background: url("https://quandz24-ui.github.io/OriginWEB/originData/OriginOS6Logo.png") no-repeat center center/cover;
+    border-radius: 26px;
+    background: url("/OriginWEB/originData/OriginOS6Logo.png") no-repeat center center/cover;
     transition: scale 0.4s, opacity 0.15s;
 }
 #imageOceanWebpOriginOSLogoAbout:active {
@@ -15,7 +15,13 @@
     width: calc(100% - 40px);
     aspect-ratio: 1248 / 1848;
     max-width: 300px;
-    background: url("https://quandz24-ui.github.io/OriginWEB/originData/OriginOS6ocean.webp") no-repeat center center/cover;
+    background: url("/OriginWEB/originData/OriginOS6ocean.webp") no-repeat center center/cover;
+    transition: scale 0.4s, opacity 0.15s;
+}
+#OriginOSocean:active {
+    transition: scale 0.15s, opacity 0.15s;
+    opacity: 0.7;
+    scale: 0.98;
 }
 
 .aboutI4Item {
@@ -28,6 +34,9 @@
     gap: 4px;
     background: none;
     padding: none;
+}
+.settingsItem.aboutI4Item {
+    background: none;
 }
 
 .aboutI4ItemText {
@@ -123,4 +132,3 @@
     height: auto;
     display: block;
 }
-

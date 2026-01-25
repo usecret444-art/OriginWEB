@@ -30,6 +30,7 @@
 }
 
 .settingsItem {
+    position: relative;
     display: flex;
     width: calc(100% - 20px);
     background: var(--bg-itemBackground);
@@ -48,14 +49,19 @@
     cursor: default;
 }
 
-.settingsItem svg {
+.settingsItem:not(.settingsUnset) svg {
     position: absolute;
     height: 20px;
     width: 20px;
     right: 25px;
     fill: var(--bg-colorDark0System);
 }
-
+.settingsItem .settingsIcon svg {
+    position: static;
+    height: 15px;
+    width: 15px;
+    right: unset;
+}
 .settingsItem.brTop {
     border-top-left-radius: 25px;
     border-top-right-radius: 25px;
@@ -70,7 +76,7 @@
     padding-bottom: 15px;
 }
 .settingsItem input[type="range"] {
-    width: 100%;
+    width: calc(100% - 7px);
 }
 .settingsText {
     font-size: 14px;
@@ -82,12 +88,19 @@
 .settingsText.marginLeft {
     margin-left: 10px;
 }
-.settingsTextSmall {
+.settingsItem .settingsTextSmall {
     font-size: 10px;
     font-weight: bold;
     font-family: Arial, Helvetica, sans-serif;
     max-width: calc(100% - 80px);
     color: gray;
+}
+.settingsItem .settingsTextSmall.value {
+    font-size: 13px;
+    font-family: sans-serif;
+    font-weight: 550;
+    color: gray;
+    margin-left: 5px;
 }
 
 .settingsTextSmallRight {
@@ -148,6 +161,7 @@
 }
 
 .settingsIcon {
+    position: relative;
     display: flex;
     height: 30px;
     width: 30px;
@@ -156,12 +170,6 @@
     border-radius: 50%;
     background: #f6526800;
     flex: 0 0 auto;
-}
-
-.settingsIcon svg {
-    position: static;
-    height: 15px;
-    width: 15px;
 }
 
 .magrinL5 {
@@ -203,6 +211,17 @@
     scale: 0.9;
     opacity: 0.8;
 }
+.closeBtn.small {
+    width: 35px;
+    height: 35px;
+    background: none;
+}
+.closeBtn.small::before,
+.closeBtn.small::after {
+    width: 17px;
+    height: 2px;
+}
+
 .contentName {
     color: gray;
     font-size: 12px;
@@ -236,7 +255,6 @@
     transition: all 0.2s ease;
 }
 
-/* mũi tên iOS */
 .settingsItem select {
     background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='24' height='24' fill='white'%3E%3Cpath d='M7 9l5 5 5-5'/%3E%3C/svg%3E");
     background-repeat: no-repeat;
@@ -244,18 +262,15 @@
     background-size: 16px;
 }
 
-/* focus giống iOS */
 .settingsItem select:focus {
     outline: none;
 }
 
-/* option */
 .settingsItem select option {
     background: #1c1c1e;
     color: #ffffff;
 }
 
-/* active */
 .settingsItem select:active {
     background-color: #2c2c2e;
 }

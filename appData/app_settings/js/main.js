@@ -10,27 +10,58 @@ const functionNameForApp_settings = {
         if (val > 100) val = 100;
 
         const percent = ((val - 20) / (100 - 20)) * 100;
-        console.log(percent);
 
         phone.style.filter = `brightness(${val / 100})`;
         brightnessSlider.style.height = `${percent}%`;
     },
+    inputRangeIconSize: function (e) {
+        const val = e.currentTarget.value;
+
+        root.style.setProperty("--bg-scaleIcon", val);
+
+        localStorage.setItem("scaleIcon", val);
+    },
+    inputRangeIconBRadius: function (e) {
+        const val = e.currentTarget.value;
+
+        root.style.setProperty("--bg-borderRadiusIcon", val + "px");
+
+        localStorage.setItem("borderRadiusIcon", val);
+    },
+    scaleIconName: function (e) {
+        const val = e.currentTarget.value;
+
+        root.style.setProperty("--bg-scaleIconName", val);
+
+        localStorage.setItem("scaleIconName", val);
+    },
 };
 
 const functionWhenOpenAppInApp_settings = {
+    app_SettingsAppAbout: function () {
+        let totalUsed = 0;
+        for (let key in localStorage) {
+            if (localStorage.hasOwnProperty(key)) {
+                let value = localStorage.getItem(key);
+                totalUsed += key.length + (value ? value.length : 0);
+            }
+        }
+        let totalBytes = 5 * 1024 * 1024;
+        let usedBytes = totalUsed;
+        if (!isNaN(totalBytes) && !isNaN(usedBytes)) {
+            document.getElementById("storage").textContent = formatSize(totalBytes);
+            document.getElementById("storageUsed").textContent = formatSize(usedBytes);
+        }
+    },
     app_SettingsAppDisplayAndBrightness: function () {
         const toggleDarkMode = document.getElementById("toggleDarkMode");
         toggleDarkMode._removeHandler = function (e) {
             this.classList.toggle("active");
             if (this.classList.contains("active")) {
-                document.documentElement.style.setProperty("--bg-itemBackground", "#171717");
-                document.documentElement.style.setProperty("--bg-appbackground", "#000");
-                document.documentElement.style.setProperty("--bg-color", "white");
+                phone.classList.add("darkMode");
                 localStorage.setItem("darkMode", "1");
             } else {
-                document.documentElement.style.setProperty("--bg-itemBackground", "#fff");
-                document.documentElement.style.setProperty("--bg-appbackground", "#eaeaea");
-                document.documentElement.style.setProperty("--bg-color", "#000");
+                phone.classList.remove("darkMode");
                 localStorage.setItem("darkMode", "0");
             }
         };
@@ -98,6 +129,62 @@ const functionWhenOpenAppInApp_settings = {
         allWallpapers.forEach((wallpaper) => {
             wallpaper.addEventListener("click", wallpaperSetOptions);
         });
+        {
+            const uploadBtn = document.querySelector('[name="uploadWallpaperBtn"]');
+            const fileInput = document.getElementById("wallpaperInput");
+
+            uploadBtn.handler = function () {
+                fileInput.click();
+            };
+            uploadBtn.addEventListener("click", uploadBtn.handler);
+
+            fileInput.handler = function () {
+                const file = fileInput.files[0];
+                if (!file) return;
+                const reader = new FileReader();
+                reader.onload = () => {
+                    const base64 = reader.result;
+                    const urlWallpaper = `url('${base64}')`;
+                    localStorage.setItem("wallpaper", urlWallpaper);
+                    setWallpaperOption(urlWallpaper);
+                };
+                reader.readAsDataURL(file);
+            };
+
+            fileInput.addEventListener("change", fileInput.handler);
+        }
+        {
+            const uploadBtnVd = document.querySelector('[name="uploadVdWallpaperBtn"]');
+            const fileInputVd = document.getElementById("wallpaperVdInput");
+            const container = document.getElementById("imageForWallpaperLock");
+
+            let currentBlobURL = null;
+
+            uploadBtnVd.onclick = () => {
+                fileInputVd.click();
+            };
+
+            fileInputVd.onchange = (e) => {
+                const file = e.target.files[0];
+                if (!file) return;
+
+                const containerId = "wallpaperLock";
+
+                removeVideoCanvas(containerId);
+
+                if (currentBlobURL) {
+                    URL.revokeObjectURL(currentBlobURL);
+                    currentBlobURL = null;
+                    container.classList.add("video");
+                }
+
+                currentBlobURL = URL.createObjectURL(file);
+
+                playVideoCanvas(containerId, currentBlobURL);
+
+                fileInputVd.value = "";
+            };
+        }
     },
     app_SettingsAppLockEditor: function () {
         const container = document.getElementById("app_SettingsAppLockEditor");
@@ -106,6 +193,9 @@ const functionWhenOpenAppInApp_settings = {
                 document
                 .getElementById(el.getAttribute("data-idNeedAdd"))
                 .classList.add(...el.getAttribute("data-classToAdd").trim().split(/\s+/));
+                container.querySelectorAll("[data-classToAdd][data-idNeedAdd]").forEach((e) => {
+                    e.style.pointerEvents = "none";
+                });
             };
             el._addHandler = handler;
             el.addEventListener("click", handler);
@@ -116,6 +206,9 @@ const functionWhenOpenAppInApp_settings = {
                 document
                 .getElementById(el.getAttribute("data-idNeedRemove"))
                 .classList.remove(...el.getAttribute("data-classToRemove").trim().split(/\s+/));
+                container.querySelectorAll("[data-classToAdd][data-idNeedAdd]").forEach((e) => {
+                    e.style.pointerEvents = "";
+                });
             };
             el._removeHandler = handler;
             el.addEventListener("click", handler);
@@ -130,6 +223,8 @@ const functionWhenOpenAppInApp_settings = {
             el._startY = e.clientY - (el._currentY || 0);
             el.setPointerCapture(e.pointerId);
         };
+
+        const edgeGap = 10;
         el._pointerHandlers.move = (e) => {
             if (!el._isDragging) return;
 
@@ -137,11 +232,36 @@ const functionWhenOpenAppInApp_settings = {
             el._currentY = e.clientY - el._startY;
 
             el.style.transition = "0s";
+
             if (Math.abs(el._currentX) <= 8) el._currentX = 0;
             if (Math.abs(el._currentY) <= 8) el._currentY = 0;
 
             el.style.translate = `${el._currentX}px ${el._currentY}px`;
+
+            const elRect = el.getBoundingClientRect();
+            const parentRect = el.parentElement.getBoundingClientRect();
+
+            const leftEdge = parentRect.left + edgeGap;
+            const rightEdge = parentRect.right - edgeGap;
+
+            if (elRect.left <= leftEdge && Math.abs(el._currentX) > 8) {
+                if (lockContent.dataset.posclock == "left") return;
+                lockContent.dataset.posclock = "left";
+                el.dataset.posclock = "left";
+                localStorage.setItem("posClock", "left");
+            } else if (elRect.right >= rightEdge && Math.abs(el._currentX) > 8) {
+                if (lockContent.dataset.posclock == "right") return;
+                lockContent.dataset.posclock = "right";
+                el.dataset.posclock = "right";
+                localStorage.setItem("posClock", "right");
+            } else {
+                if (lockContent.dataset.posclock == "center") return;
+                lockContent.dataset.posclock = "center";
+                el.dataset.posclock = "center";
+                localStorage.setItem("posClock", "center");
+            }
         };
+
         el._pointerHandlers.up = (e) => {
             el.style.transition = "";
             el._isDragging = false;
@@ -231,6 +351,42 @@ const functionWhenOpenAppInApp_settings = {
             localStorage.setItem("opacityLockClock", `${opacityPercent}%`);
         };
         opacityLockClockSlider.addEventListener("input", opacityLockClockSlider._opacityHandler);
+        {
+            const item = container.querySelectorAll('[name="allWallpaperOnStyle"] .itemChild');
+
+            item.forEach((el) => {
+                el.handler = function (e) {
+                    const et = e.target;
+                    const val = et.dataset.allwallpaperonstyle;
+
+                    currentWallpaperOnStyle = allWallpaperOnStyle[val];
+                    currentWallpaperOffStyle = allWallpaperOffStyle[val != 2 ? 0 : val];
+
+                    wallpaperLockPre.animate([{}, currentWallpaperOnStyle.wallpaperLock], {
+                        duration: 300 * speed,
+                        easing: "ease",
+                        fill: "forwards",
+                    });
+
+                    const activeItem = container.querySelector('[name="allWallpaperOnStyle"] .itemChild.active');
+                    activeItem.classList.remove("active");
+                    et.classList.add("active");
+
+                    localStorage.setItem("allWallpaperOnStyle", val);
+                    localStorage.setItem("aodStyle", val != 2 ? 0 : val);
+
+                    {
+                        document.querySelectorAll("#app_SettingsAppAOD .itemChild.active").forEach((activeEl) => {
+                            activeEl.classList.remove("active");
+                        });
+
+                        const activeItem = document.querySelector(`[data-style='${val != 2 ? 0 : val}']`);
+                        if (activeItem) activeItem.classList.add("active");
+                    }
+                };
+                el.addEventListener("click", el.handler);
+            });
+        }
     },
     app_SettingsAppHomeLockSettings: function () {
         const el = document.getElementById("toggle_doubleTapOnOff");
@@ -242,6 +398,18 @@ const functionWhenOpenAppInApp_settings = {
         };
         el._removeHandler = toggle_doubleTapOnOff;
         el.addEventListener("click", toggle_doubleTapOnOff);
+
+        {
+            const el = document.getElementById("toggle_turnDarkenWallpaperOff");
+            const toggle_doubleTapOnOff = (e) => {
+                const element = e.target;
+                element.classList.toggle("active");
+                doubleTapOnOff = element.classList.contains("active") ? 1 : 0;
+                localStorage.setItem("turnDarkenWallpaperOff", element.classList.contains("active") ? "0" : "1");
+            };
+            el._removeHandler = toggle_doubleTapOnOff;
+            el.addEventListener("click", toggle_doubleTapOnOff);
+        }
     },
     app_SettingsAppIcon: function () {
         const el = document.getElementById("toggle_hideIconText");
@@ -253,6 +421,21 @@ const functionWhenOpenAppInApp_settings = {
         };
         el._removeHandler = toggle_hideIconText;
         el.addEventListener("click", toggle_hideIconText);
+
+        {
+            const el = document.getElementById("inputRangeIconSize");
+            el.handler = function () {
+                updateAppPosNoRemove();
+            };
+            el.addEventListener("pointerup", el.handler);
+        }
+        {
+            const el = document.getElementById("inputRangeIconBRadius");
+            el.handler = function () {
+                updateAppPosNoRemove();
+            };
+            el.addEventListener("pointerup", el.handler);
+        }
     },
     app_SettingsAppLiquidGlass: function () {
         {
@@ -273,11 +456,13 @@ const functionWhenOpenAppInApp_settings = {
                 localStorage.setItem("turnLiquidOff", element.classList.contains("active") ? "0" : "1");
 
                 if (phone.classList.contains("noLiquid"))
-                    document.querySelector(".settingsItem[notWorkBy='toggle_turnLiquidOff']").classList.add("notWork");
+                    document.querySelectorAll(".settingsItem[notWorkBy='toggle_turnLiquidOff']").forEach((el) => {
+                        el.classList.add("notWork");
+                    });
                 else
-                    document
-                    .querySelector(".settingsItem[notWorkBy='toggle_turnLiquidOff']")
-                    .classList.remove("notWork");
+                    document.querySelectorAll(".settingsItem[notWorkBy='toggle_turnLiquidOff']").forEach((el) => {
+                        el.classList.remove("notWork");
+                    });
             };
             el.addEventListener("click", el._inpurtHandler);
         }
@@ -350,8 +535,25 @@ const functionWhenOpenAppInApp_settings = {
             el._removeHandler = (e) => {
                 const element = e.target;
                 element.classList.toggle("active");
+                document.getElementById("toggle_turnBlurOff2").classList.toggle("active");
                 document.getElementById("blurAllApp").classList.toggle("displayN");
                 localStorage.setItem("turnBlurOff", element.classList.contains("active") ? "0" : "1");
+            };
+
+            el.addEventListener("click", el._removeHandler);
+        }
+        {
+            const el = document.getElementById("toggle_turnAdvancedBlurOn");
+            el._removeHandler = (e) => {
+                const element = e.target;
+                element.classList.toggle("active");
+                const blurVal = element ? (element.classList.contains("active") ? 6 : 0) : 0;
+                root.style.setProperty("--bg-advancedBlur", `${blurVal}px`);
+                localStorage.setItem("turnAdvancedBlurOn", element.classList.contains("active") ? "1" : "0");
+
+                const unlockAnimation = localStorage.getItem("unlockAnimation");
+                if (unlockAnimation == "HyperOS")
+                    filterForUnlockAnim = `blur(${rootStyle.getPropertyValue("--bg-advancedBlur").toString()})`;
             };
 
             el.addEventListener("click", el._removeHandler);
@@ -449,6 +651,187 @@ const functionWhenOpenAppInApp_settings = {
             };
             toggle_fingerprint.addEventListener("click", toggle_fingerprint.handler);
         }
+
+        {
+            // Fingerprint animtion
+            const selectFpAnim = document.querySelector(
+                "#app_SettingsAppPasswordAndSecurity .select[name='fingerprintAnimation']"
+            );
+
+            const selectBoxs = selectFpAnim.querySelector(".selectBoxs");
+            selectFpAnim.handler = (e) => {
+                if (e.target.matches(".selectTrigger")) selectBoxs.classList.toggle("open");
+            };
+            selectFpAnim.addEventListener("click", selectFpAnim.handler);
+
+            const currentValue = selectFpAnim.querySelector(".currentValue");
+
+            selectBoxs.handler = async (e) => {
+                const {valuea, valueb} = e.currentTarget.dataset;
+
+                await unloadAllPreload();
+
+                ani_fingerprint_type = valuea;
+                ani_fadein_fingerprint_type = valueb;
+                ani_fadeout_fingerprint_type = valueb;
+
+                localStorage.setItem("FpAnimation1", valuea);
+                localStorage.setItem("FpAnimation2", valueb);
+
+                currentValue.textContent = e.target.textContent;
+
+                selectBoxs.querySelectorAll(".itemChild").forEach((i) => i.classList.remove("active"));
+                e.target.classList.add("active");
+
+                clearTimeout(fingerBtnAnimPre._timer);
+                loadFpAnim();
+
+                setTimeout(() => {
+                    selectBoxs.classList.remove("open");
+                    run_fingerprint_animation_pre(run_fingerprint_animation_pre);
+                }, 200);
+            };
+            selectBoxs.querySelectorAll(".itemChild").forEach((item) => {
+                item.addEventListener("click", selectBoxs.handler);
+            });
+        }
+        {
+            //toggle_lockScreenPassword
+            const el = document.getElementById("toggle_lockScreenPassword");
+            el.handler = function (e) {
+                if (!el.classList.contains("active")) {
+                    createPasswordScreen(6, () => {
+                        el.classList.add("active");
+                        document
+                        .querySelectorAll(".settingsItem[notWorkBy='toggle_lockScreenPassword']")
+                        .forEach((el) => {
+                            el.classList.remove("notWork");
+                        });
+                    });
+                } else {
+                    correctPassword = "";
+                    localStorage.removeItem("password");
+                    el.classList.remove("active");
+                    document.querySelectorAll(".settingsItem[notWorkBy='toggle_lockScreenPassword']").forEach((el) => {
+                        el.classList.add("notWork");
+                    });
+                }
+            };
+            el.addEventListener("click", el.handler);
+        }
+        {
+            const el = document.querySelector('#app_SettingsAppPasswordAndSecurity [name="changePwBtn"]');
+            el.handler = function () {
+                createPasswordScreen(6);
+            };
+            el.addEventListener("click", el.handler);
+        }
+        run_fingerprint_animation_pre(run_fingerprint_animation_pre);
+    },
+    app_SettingsAppSysNav: function () {
+        {
+            const items = document.querySelectorAll("#app_SettingsAppSysNav .st");
+            items.handler = function (e) {
+                const el = e.target;
+                document.querySelector("#app_SettingsAppSysNav .st.active")?.classList.remove("active");
+                el.classList.add("active");
+                navStyle(el.dataset.nav);
+                updateAppPosNoRemove();
+            };
+            items.forEach((el) => {
+                el.addEventListener("click", items.handler);
+            });
+        }
+    },
+    app_SettingsAppAboutOcean: function () {
+        const box = document.getElementById("OriginOSocean");
+
+        box.totalClick = 0;
+        box.timeOutClick;
+        box.shouldShowClickTime = 0;
+        if (!box.shouldntClick) box.shouldntClick = 0;
+
+        box.onclick = () => {
+            if (box.shouldntClick) {
+                tb_system("You are already a developer.");
+                return;
+            }
+            clearTimeout(box.timeOutClick);
+            if (++box.totalClick === 9) {
+                runScript();
+                box.totalClick = 0;
+            }
+            box.timeOutClick = setTimeout(() => (box.totalClick = 0), 900);
+
+            if (box.totalClick >= 2) box.shouldShowClickTime = 1;
+            if (box.shouldShowClickTime) {
+                tb_system(`You are now ${9 - box.totalClick} steps away from being a developer.`, 900);
+            }
+        };
+
+        function runScript() {
+            box.shouldntClick = 1;
+            box.shouldShowClickTime = 0;
+            tb_system("You are already a developer.");
+            phone.classList.add("devModOn");
+        }
+    },
+    app_SettingsDev: function () {
+        const app = document.getElementById("app_SettingsDev");
+
+        const heightPhoneEditVal = app.querySelector('[name="heightPhoneEdit"] .settingsTextSmall.value');
+        const widthPhoneEditVal = app.querySelector('[name="widthPhoneEdit"] .settingsTextSmall.value');
+
+        const heightPhoneEdit = app.querySelector('[name="heightPhoneEdit"]');
+        const widthPhoneEdit = app.querySelector('[name="widthPhoneEdit"]');
+
+        app.updateText = function () {
+            const rootStyle = getComputedStyle(root);
+            heightPhoneEditVal.textContent = rootStyle.getPropertyValue("--bg-heightPhone");
+            widthPhoneEditVal.textContent = rootStyle.getPropertyValue("--bg-widthPhone");
+        };
+        app.updateText();
+
+        {
+            heightPhoneEdit.handler = function () {
+                showPopupInput({
+                    message: "Phone height",
+                    placeholder: 617,
+                    defaultText: heightPhoneEditVal.textContent.trim(),
+                    maxLength: 5,
+                    buttonText: "OK",
+                    onSubmit: (resultText) => {
+                        if (resultText < 600) resultText = 600;
+
+                        heightPhoneEditVal.textContent = resultText;
+                        root.style.setProperty("--bg-heightPhone", resultText);
+                        updateAppPosNoRemove();
+                    },
+                });
+            };
+
+            heightPhoneEdit.addEventListener("click", heightPhoneEdit.handler);
+        }
+        {
+            widthPhoneEdit.handler = function () {
+                showPopupInput({
+                    message: "Phone width",
+                    placeholder: 280,
+                    defaultText: widthPhoneEditVal.textContent.trim(),
+                    maxLength: 5,
+                    buttonText: "OK",
+                    onSubmit: (resultText) => {
+                        if (resultText < 280) resultText = 280;
+
+                        widthPhoneEditVal.textContent = resultText;
+                        root.style.setProperty("--bg-widthPhone", resultText);
+                        updateAppPosNoRemove();
+                    },
+                });
+            };
+
+            widthPhoneEdit.addEventListener("click", widthPhoneEdit.handler);
+        }
     },
 };
 const functionWhenCloseAppInApp_settings = {
@@ -467,6 +850,15 @@ const functionWhenCloseAppInApp_settings = {
         allWallpapers.forEach((wallpaper) => {
             wallpaper.removeEventListener("click", wallpaperSetOptions);
         });
+        {
+            const uploadBtn = document.querySelector('[name="uploadWallpaperBtn"]');
+            const fileInput = document.getElementById("wallpaperInput");
+
+            uploadBtn.addEventListener("click", uploadBtn.handler);
+            delete uploadBtn.handler;
+            fileInput.addEventListener("change", fileInput.handler);
+            delete fileInput.handler;
+        }
     },
     app_SettingsAppLockEditor: function () {
         const container = document.getElementById("app_SettingsAppLockEditor");
@@ -522,6 +914,13 @@ const functionWhenCloseAppInApp_settings = {
         const opacityLockClockSlider = document.getElementById("opacityLockClockSlider");
         opacityLockClockSlider.removeEventListener("input", opacityLockClockSlider._opacityHandler);
         delete opacityLockClockSlider._opacityHandler;
+        {
+            const item = container.querySelectorAll('[name="allWallpaperOnStyle"] .itemChild');
+            item.forEach((el) => {
+                el.removeEventListener("click", el.handler);
+                delete el.handler;
+            });
+        }
     },
     app_SettingsAppHomeLockSettings: function () {
         const el = document.getElementById("toggle_doubleTapOnOff");
@@ -532,6 +931,17 @@ const functionWhenCloseAppInApp_settings = {
         const el = document.getElementById("toggle_hideIconText");
         el.removeEventListener("click", el._removeHandler);
         delete el._removeHandler;
+
+        {
+            const el = document.getElementById("inputRangeIconSize");
+            el.removeEventListener("pointerup", el.handler);
+            delete el.handler;
+        }
+        {
+            const el = document.getElementById("inputRangeIconBRadius");
+            el.removeEventListener("pointerup", el.handler);
+            delete el.handler;
+        }
     },
     app_SettingsAppLiquidGlass: function () {
         {
@@ -578,6 +988,11 @@ const functionWhenCloseAppInApp_settings = {
             delete el._removeHandler;
         }
         {
+            const el = document.getElementById("toggle_turnAdvancedBlurOn");
+            el.removeEventListener("click", el._removeHandler);
+            delete el._removeHandler;
+        }
+        {
             // unlock animation select
             const selectUnlockAnimation = document.querySelector(
                 "#app_SettingsAppAnimation .select[name='unlockAnimation']"
@@ -609,14 +1024,90 @@ const functionWhenCloseAppInApp_settings = {
             delete el.Handler;
         }
     },
+    app_SettingsAppPasswordAndSecurity: function () {
+        {
+            const toggle_fingerprint = document.getElementById("toggle_fingerprint");
+            toggle_fingerprint.removeEventListener("click", toggle_fingerprint.handler);
+            delete toggle_fingerprint.handler;
+        }
+
+        {
+            // Fingerprint animtion
+            const selectFpAnim = document.querySelector(
+                "#app_SettingsAppPasswordAndSecurity .select[name='fingerprintAnimation']"
+            );
+            const selectBoxs = selectFpAnim.querySelector(".selectBoxs");
+
+            selectFpAnim.removeEventListener("click", selectFpAnim.handler);
+            delete selectFpAnim.handler;
+
+            selectBoxs.querySelectorAll(".itemChild").forEach((item) => {
+                item.removeEventListener("click", selectBoxs.handler);
+            });
+            delete selectBoxs.handler;
+        }
+
+        {
+            //toggle_lockScreenPassword
+            const el = document.getElementById("toggle_lockScreenPassword");
+            el.removeEventListener("click", el.handler);
+            delete el.handler;
+        }
+
+        {
+            const el = document.querySelector('#app_SettingsAppPasswordAndSecurity [name="changePwBtn"]');
+
+            el.removeEventListener("click", el.handler);
+            delete el.handler;
+        }
+        clearTimeout(fingerBtnAnimPre._timer);
+    },
+    app_SettingsAppSysNav: function () {
+        {
+            const items = document.querySelectorAll("#app_SettingsAppSysNav .st");
+            items.forEach((el) => {
+                el.removeEventListener("click", items.handler);
+            });
+            delete items.handler;
+        }
+    },
+
+    app_SettingsAppAboutOcean: function () {
+        const box = document.getElementById("OriginOSocean");
+
+        box.totalClick = 0;
+        box.timeOutClick;
+        box.shouldShowClickTime = 0;
+
+        box.onclick = null;
+    },
+    app_SettingsDev: function () {
+        const app = document.getElementById("app_SettingsDev");
+
+        const heightPhoneEdit = app.querySelector('[name="heightPhoneEdit"]');
+        const widthPhoneEdit = app.querySelector('[name="widthPhoneEdit"]');
+
+        delete app.updateText;
+
+        {
+            heightPhoneEdit.removeEventListener("click", heightPhoneEdit.handler);
+            delete heightPhoneEdit.handle;
+        }
+        {
+            widthPhoneEdit.removeEventListener("click", widthPhoneEdit.handler);
+            delete widthPhoneEdit.handler;
+        }
+    },
 };
 
 function wallpaperSetOptions(e) {
     const bgImg = e.currentTarget.style.backgroundImage;
+    setWallpaperOption(bgImg);
+}
 
+function setWallpaperOption(bgImg) {
     const overlay = document.querySelector(".overlayFullScreen");
     const optionBox = document.getElementById("optionSelectWallpaper");
-
     overlay.classList.add("openForWallpaper");
 
     optionBox.querySelector('[data-buttonWallpaper="setForLockScreen"]').onclick = () => {
@@ -646,6 +1137,8 @@ function wallpaperSetOptions(e) {
                 wallpaperLockColorPre.style.cssText = `background: linear-gradient( ${darkerColorWallpaperLock}, ${originColorWallpaperLock});`;
             });
         }
+        wallpaperLock.classList.remove("video");
+        removeVideoCanvas("wallpaperLock");
     };
     optionBox.querySelector('[data-buttonWallpaper="setForHomeScreen"]').onclick = () => {
         overlay.classList.remove("openForWallpaper");
@@ -674,6 +1167,9 @@ function wallpaperSetOptions(e) {
                 darkerColorWallpaperLock = finalColor;
 
                 document.documentElement.style.setProperty("--bg-colorLockClock", color);
+
+                localStorage.setItem("colorLockClock", color);
+
                 document.querySelectorAll("#app_SettingsAppLockEditor .colorCircle.active").forEach((activeCircle) => {
                     activeCircle.classList.remove("active");
                 });
@@ -681,6 +1177,8 @@ function wallpaperSetOptions(e) {
                 wallpaperLockColorPre.style.cssText = `background: linear-gradient( ${darkerColorWallpaperLock}, ${originColorWallpaperLock});`;
             });
         }
+        wallpaperLock.classList.remove("video");
+        removeVideoCanvas("wallpaperLock");
     };
     optionBox.querySelector('[data-buttonWallpaper="cancelSetWallpaper"]').onclick = () => {
         overlay.classList.remove("openForWallpaper");
