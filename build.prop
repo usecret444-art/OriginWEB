@@ -1,5 +1,5 @@
 # default phone type
-device.type=phone
+device.type=fold
 
 
 
@@ -30,7 +30,7 @@ phone.borderOutside.size=10px
 phone.appScreen.rols=4
 phone.appScreen.rows=6
 
-device.phone.name=vivo x300 pro
+device.phone.name=Vivo X300 Pro
 
 
 # deivce type = tablet
@@ -49,7 +49,7 @@ tablet.borderOutside.size=10px
 tablet.appScreen.rols=6
 tablet.appScreen.rows=6
 
-device.tablet.name=Vivo Pad 5 Pro
+device.tablet.name=Vivo Pad 6 Pro
 
 
 # deivce type = computer
@@ -68,7 +68,7 @@ computer.borderOutside.size=10px
 computer.appScreen.rols=9
 computer.appScreen.rows=5
 
-device.computer.name=vivo x300 pro
+device.computer.name=ASUS Vivobook S16
 
 
 # deivce type = fold
@@ -90,4 +90,4 @@ fold.appScreen.rows=6
 fold.ed.appScreen.rols=8
 fold.ed.appScreen.rows=6
 
-device.fold.name=vivo x fold 5
+device.fold.name=Vivo XFold 6
